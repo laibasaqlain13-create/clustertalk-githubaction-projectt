@@ -1374,9 +1374,9 @@ function injectLoginFormHTML() {
       <h2 id="loginTitle">ClusterTalk</h2>
       <p id="loginSubtitle">Distributed mesh chat</p>
       <div id="loginTabs">
-        <button type="button" id="tabSignin">Client Login</button>
+        <button type="button" id="tabSignin">Client login</button>
         <button type="button" id="tabRegister">Create Account</button>
-        <button type="button" id="tabAdmin">Admin Login</button>
+        <button type="button" id="tabAdmin">Admin login</button>
       </div>
       <div id="loginError" style="display:none"></div>
       <input id="loginUsername" type="text"     placeholder="Username (min 3 chars)" autocomplete="username" />
