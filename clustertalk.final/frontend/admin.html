@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ClusterTalk · Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B1020; --surface:#141B2D; --surface-2:#1A2338; --surface-3:#202A42;
+    --border:rgba(148,163,184,.14); --border-strong:rgba(148,163,184,.24);
+    --accent:#6366F1; --accent-soft:rgba(99,102,241,.16);
+    --success:#22C55E; --success-soft:rgba(34,197,94,.15);
+    --danger:#EF4444; --danger-soft:rgba(239,68,68,.15);
+    --warning:#F59E0B; --warning-soft:rgba(245,158,11,.15);
+    --text:#F8FAFC; --text-2:#94A3B8; --text-3:#5B6780;
+    --mono:'JetBrains Mono',ui-monospace,monospace;
+    --ui:'Plus Jakarta Sans','Inter',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:var(--ui); color:var(--text); min-height:100vh;
+    background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(99,102,241,.12), transparent 60%),
+      radial-gradient(1000px 500px at 100% 0%, rgba(34,197,94,.07), transparent 55%),
+      var(--bg);
+  }
+  a{color:inherit}
+  .wrap{max-width:1200px; margin:0 auto; padding:22px 24px 60px}
+
+  /* ── top bar ── */
+  .topbar{display:flex; align-items:center; gap:14px; margin-bottom:24px; flex-wrap:wrap}
+  .logo{width:46px;height:46px;display:grid;place-items:center}
+  .logo img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 14px rgba(34,211,238,.35))}
+  .title h1{font-size:19px; font-weight:800; letter-spacing:-.02em}
+  .title p{font-size:12px; color:var(--text-3); font-family:var(--mono)}
+  .spacer{flex:1}
+  .api-pill{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:999px;
+    font-size:12.5px;font-weight:600;border:1px solid var(--border);background:var(--surface)}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--text-3)}
+  .dot.ok{background:var(--success);box-shadow:0 0 0 4px var(--success-soft);animation:pulse 2s infinite}
+  .dot.bad{background:var(--danger);box-shadow:0 0 0 4px var(--danger-soft)}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+  .btn{font-family:var(--ui);font-size:13px;font-weight:600;padding:9px 16px;border-radius:10px;
+    border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;
+    transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+  .btn:hover{border-color:var(--border-strong);background:var(--surface-2)}
+  .btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn-primary:hover{background:#7477F5}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+
+  /* ── KPI cards ── */
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:22px}
+  .kpi{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px 18px;
+    position:relative;overflow:hidden}
+  .kpi .label{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);font-weight:600}
+  .kpi .value{font-family:var(--mono);font-size:30px;font-weight:700;margin-top:8px;line-height:1}
+  .kpi .sub{font-size:12px;color:var(--text-2);margin-top:6px}
+  .kpi .value.green{color:var(--success)} .kpi .value.accent{color:#a5b4fc}
+
+  /* ── layout ── */
+  .grid{display:grid;grid-template-columns:1.55fr 1fr;gap:18px}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:20px 22px;margin-bottom:18px}
+  .panel h2{font-size:14px;font-weight:700;letter-spacing:.01em;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+  .panel .hint{font-size:12px;color:var(--text-3);margin-bottom:16px}
+
+  /* ── server cards ── */
+  .server{border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:12px;
+    background:var(--surface-2);transition:border-color .2s}
+  .server.down{opacity:.75;border-color:var(--danger-soft)}
+  .server-top{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+  .server-addr{font-family:var(--mono);font-size:14px;font-weight:600}
+  .badge{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+    padding:3px 9px;border-radius:999px}
+  .badge.up{background:var(--success-soft);color:#4ade80}
+  .badge.dn{background:var(--danger-soft);color:#f87171}
+  .badge.tag{background:var(--surface-3);color:var(--text-2)}
+  .badge.self{background:var(--accent-soft);color:#a5b4fc}
+  .badge.pause{background:var(--warning-soft);color:#fbbf24}
+  .server.off{opacity:.7;border-color:var(--warning-soft)}
+  /* control buttons on a server card */
+  .mini{font-family:var(--ui);font-size:11.5px;font-weight:600;padding:5px 11px;border-radius:8px;
+    border:1px solid var(--border);background:var(--surface-3);color:var(--text-2);cursor:pointer;transition:all .15s}
+  .mini:hover{border-color:var(--border-strong);color:var(--text)}
+  .mini.down:hover{border-color:var(--warning);color:#fbbf24}
+  .mini.up:hover{border-color:var(--success);color:#4ade80}
+  .mini.rm:hover{border-color:var(--danger);color:#f87171}
+  .btn-add{margin-left:auto;font-family:var(--ui);font-size:12px;font-weight:600;padding:6px 13px;border-radius:9px;
+    border:1px solid var(--accent);background:var(--accent-soft);color:#a5b4fc;cursor:pointer;transition:all .15s}
+  .btn-add:hover{background:var(--accent);color:#fff}
+  .btn-add:disabled{opacity:.5;cursor:not-allowed}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--surface-3);
+    border:1px solid var(--border-strong);border-radius:12px;padding:12px 20px;font-size:13px;font-weight:600;
+    box-shadow:0 12px 40px rgba(0,0,0,.5);opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:50}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
+  .server-stats{display:flex;gap:22px;flex-wrap:wrap}
+  .server-stats .s{font-size:12px;color:var(--text-3)}
+  .server-stats .s b{display:block;font-family:var(--mono);font-size:19px;font-weight:700;color:var(--text);margin-top:2px}
+  .server-stats .s .sub{font-size:11px;color:var(--text-3);margin-top:2px;font-family:var(--mono)}
+
+  /* ── distribution bars ── */
+  .bar-row{display:flex;align-items:center;gap:12px;margin:11px 0}
+  .bar-label{width:120px;flex-shrink:0;font-family:var(--mono);font-size:12px;color:var(--text-2);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bar-track{flex:1;height:22px;background:var(--surface-3);border-radius:8px;overflow:hidden;position:relative}
+  .bar-fill{height:100%;border-radius:8px;background:linear-gradient(90deg,#6366F1,#818CF8);
+    transition:width .6s cubic-bezier(.16,1,.3,1);min-width:2px}
+  .bar-fill.down{background:linear-gradient(90deg,#64748b,#475569)}
+  .bar-val{width:64px;text-align:right;font-family:var(--mono);font-size:13px;font-weight:600}
+  .bar-pct{font-size:11px;color:var(--text-3);font-family:var(--mono)}
+
+  /* ── simulate ── */
+  .sim-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  input[type=number]{font-family:var(--mono);font-size:14px;padding:9px 12px;width:110px;
+    background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);outline:none}
+  input[type=number]:focus{border-color:var(--accent)}
+  .quick{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{font-size:12px;padding:6px 12px;border-radius:999px;border:1px solid var(--border);
+    background:var(--surface-2);cursor:pointer;font-family:var(--mono)}
+  .chip:hover{border-color:var(--accent);color:#a5b4fc}
+  .sim-result{font-size:12.5px;color:var(--text-2);margin-top:10px;min-height:18px;line-height:1.5}
+
+  /* ── how-it-works ── */
+  .how li{list-style:none;display:flex;gap:11px;padding:9px 0;font-size:13px;color:var(--text-2);
+    line-height:1.5;border-bottom:1px solid var(--border-subtle,rgba(148,163,184,.06))}
+  .how li:last-child{border-bottom:none}
+  .how .num{width:22px;height:22px;flex-shrink:0;border-radius:7px;background:var(--accent-soft);
+    color:#a5b4fc;font-size:11px;font-weight:700;display:grid;place-items:center;font-family:var(--mono)}
+  .how b{color:var(--text)}
+  /* mesh topology */
+  .mesh-topology{position:relative;height:190px;margin-top:10px;border:1px solid var(--border);border-radius:12px;background:var(--surface-2);overflow:hidden}
+  .mesh-topology svg{width:100%;height:100%;overflow:visible}
+  .mesh-link{stroke:var(--success);stroke-width:2;opacity:.75;transition:stroke .35s ease,stroke-dasharray .35s ease,opacity .35s ease}
+  .mesh-link.degraded{stroke:var(--danger);stroke-dasharray:6 5;opacity:.8}
+  .mesh-node circle{fill:var(--surface);stroke:var(--text-3);stroke-width:2.5;transition:fill .35s ease,stroke .35s ease,filter .35s ease}
+  .mesh-node.up circle{fill:var(--success-soft);stroke:var(--success);filter:drop-shadow(0 0 5px rgba(34,197,94,.45))}
+  .mesh-node.down circle{fill:var(--danger-soft);stroke:var(--danger);filter:drop-shadow(0 0 5px rgba(239,68,68,.35))}
+  .mesh-node.recovering circle{fill:var(--warning-soft);stroke:var(--warning);filter:drop-shadow(0 0 5px rgba(245,158,11,.35))}
+  .mesh-node text{font-family:var(--ui);fill:var(--text);font-size:11px;font-weight:700;text-anchor:middle;pointer-events:none}.mesh-node .mesh-address{fill:var(--text-3);font-family:var(--mono);font-size:8px;font-weight:500}
+  .mesh-badge{font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:.06em;text-anchor:middle}.mesh-badge.down{fill:#f87171}.mesh-badge.recovering{fill:#fbbf24}
+  .mesh-offline{position:absolute;inset:0;display:grid;place-content:center;text-align:center;background:rgba(11,16,32,.72);font-size:13px;font-weight:700;line-height:1.65;z-index:2}.mesh-offline span{font-size:11px;font-weight:500;color:var(--text-2)}
+  .mesh-legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;font-size:10px;font-weight:700;color:var(--text-2);font-family:var(--mono)}.mesh-legend i{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px}.mesh-legend .up{background:var(--success)}.mesh-legend .down{background:var(--danger)}.mesh-legend .recovering{background:var(--warning)}.mesh-legend .unknown{background:var(--text-3)}
+  .mesh-client-dot{position:absolute;z-index:3;width:8px;height:8px;border-radius:50%;background:#a5b4fc;box-shadow:0 0 8px #818cf8;left:calc(var(--from-x) * 1%);top:calc(var(--from-y) * 1%);animation:mesh-migrate 1.25s cubic-bezier(.16,1,.3,1) forwards;pointer-events:none}
+  @keyframes mesh-migrate{0%{transform:translate(-50%,-50%) scale(.65);opacity:0}15%{opacity:1}75%{opacity:1}100%{left:calc(var(--to-x) * 1%);top:calc(var(--to-y) * 1%);transform:translate(-50%,-50%) scale(1);opacity:0}}
+  .mesh-empty{height:100%;display:grid;place-items:center;color:var(--text-3);font-size:13px}
+  code{font-family:var(--mono);font-size:12px;background:var(--surface-3);padding:1px 6px;border-radius:5px;color:#c7d2fe}
+
+  /* ── flow diagram ── */
+  .flow{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;
+    padding:14px;background:var(--surface-2);border-radius:12px;margin-top:4px}
+  .node{font-family:var(--mono);font-size:11.5px;padding:8px 12px;border-radius:9px;
+    border:1px solid var(--border);background:var(--bg);white-space:nowrap}
+  .node.lb{border-color:var(--accent);color:#a5b4fc;box-shadow:0 0 0 3px var(--accent-soft)}
+  .arrow{color:var(--text-3);font-size:15px}
+  .empty{color:var(--text-3);font-size:13px;text-align:center;padding:24px 0}
+  .flash{animation:flash .8s ease}
+  @keyframes flash{0%{background:var(--accent-soft)}100%{background:var(--surface-2)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="logo"><img src="logo.png" onerror="this.onerror=null;this.src='logo.svg'" alt="ClusterTalk" /></div>
+    <div class="title">
+      <h1>ClusterTalk — Admin</h1>
+      <p id="lbListen">Load Balancer · —</p>
+    </div>
+    <div class="spacer"></div>
+    <span class="api-pill"><span class="dot" id="apiDot"></span><span id="apiText">connecting…</span></span>
+  </div>
+
+  <!-- KPI row -->
+  <div class="kpis">
+    <div class="kpi"><div class="label">Active Servers</div><div class="value green" id="kServers">—</div><div class="sub" id="kServersSub">healthy / total</div></div>
+    <div class="kpi"><div class="label">Requests Routed</div><div class="value accent" id="kRequests">—</div><div class="sub">since LB start</div></div>
+    <div class="kpi"><div class="label">Connected Clients</div><div class="value accent" id="kClients">—</div><div class="sub">sticky to a server</div></div>
+    <div class="kpi"><div class="label">Uptime</div><div class="value" id="kUptime">—</div><div class="sub" id="kRedis">redis: —</div></div>
+  </div>
+
+  <div class="grid">
+    <!-- LEFT -->
+    <div>
+      <div class="panel">
+        <h2>🖥️ Backend Servers <button class="btn-add" id="addServerBtn">＋ Add Server</button></h2>
+        <div class="hint">Every chat node the load balancer can route to. <b>Take one down</b> and watch traffic shift to the rest — that's failover.</div>
+        <div id="serverList"><div class="empty">Loading…</div></div>
+      </div>
+
+      <div class="panel">
+        <h2>👥 Connected Clients <span style="font-size:11px;font-weight:600;color:var(--text-3);font-family:var(--mono)">sticky sessions</span></h2>
+        <div class="hint">Each logged-in client <b>sticks</b> to a server. Take a server down → its clients <b>fail over</b> to the others (evenly). Bring it back → they <b>return home</b>.</div>
+        <div id="clientDist"><div class="empty">No logged-in clients yet. Real client connections will appear here automatically.</div></div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div>
+
+      <div class="panel">
+        <h2>⚙️ How the Load Balancer works</h2>
+        <div id="meshTopology" class="mesh-topology" aria-live="polite"><div class="mesh-empty">Loading mesh...</div></div>
+        <div class="mesh-legend" aria-label="Server status legend"><span><i class="up"></i>UP</span><span><i class="down"></i>DOWN</span><span><i class="recovering"></i>RECOVERING</span><span><i class="unknown"></i>UNKNOWN</span></div>
+        <ul class="how" hidden>
+          <li><span class="num">1</span><span><b>Round-robin:</b> new clients are spread <b>evenly</b> across all healthy servers, so no single one overloads.</span></li>
+          <li><span class="num">2</span><span><b>Sticky:</b> each client stays pinned to <b>its own server</b>, so its session &amp; history stay in one place.</span></li>
+          <li><span class="num">3</span><span><b>Failover:</b> if a server goes <span class="badge dn">DOWN</span>, its clients are moved to the healthy ones — <b>nobody is dropped</b>.</span></li>
+          <li><span class="num">4</span><span><b>Failback:</b> when that server comes back, <b>its own clients return to it</b> automatically.</span></li>
+          <li><span class="num">5</span><span><b>Auto-scale:</b> nodes <b>register / deregister</b> live and are health-checked every few seconds — the pool adjusts instantly.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+if (localStorage.getItem('ct_role') !== 'admin') {
+  location.replace('index.html');
+}
+
+const ADMIN_API = `${location.protocol}//${location.hostname}:9200`;
+const COLORS = ['#6366F1','#22C55E','#F59E0B','#EC4899','#0EA5E9','#8B5CF6'];
+
+const $ = (id) => document.getElementById(id);
+let lastTotals = {};    // for flash-on-change (requests)
+let lastClients = {};   // for flash-on-change (clients)
+let meshPrevious = new Map();
+
+function meshState(status){
+  return status === 'up' ? 'up' : status === 'recovering' ? 'recovering' : status === 'paused' || status === 'down' ? 'down' : 'unknown';
+}
+function meshPosition(index, total){
+  if(total === 1) return {x:150,y:105,pX:50,pY:48};
+  if(total === 2) return [{x:85,y:115,pX:28,pY:52},{x:215,y:115,pX:72,pY:52}][index];
+  const positions = [{x:150,y:42,pX:50,pY:19},{x:62,y:165,pX:21,pY:75},{x:238,y:165,pX:79,pY:75}];
+  return positions[index] || {x:150 + 92*Math.cos((index-3)*Math.PI*2/Math.max(1,total-3)),y:108 + 75*Math.sin((index-3)*Math.PI*2/Math.max(1,total-3)),pX:50,pY:50};
+}
+function renderMesh(servers){
+  const host = $('meshTopology'); if(!host) return;
+  if(!servers.length){ host.innerHTML = '<div class="mesh-empty">No servers registered.</div>'; meshPrevious = new Map(); return; }
+  const points = servers.map((_, i) => meshPosition(i, servers.length));
+  const states = servers.map(s => meshState(s.status));
+  let links = '';
+  servers.forEach((server, i) => servers.slice(i + 1).forEach((other, offset) => {
+    const j = i + offset + 1, degraded = states[i] !== 'up' || states[j] !== 'up';
+    links += `<line class="mesh-link ${degraded ? 'degraded' : ''}" x1="${points[i].x}" y1="${points[i].y}" x2="${points[j].x}" y2="${points[j].y}"/>`;
+  }));
+  const nodes = servers.map((server, i) => {
+    const state = states[i], point = points[i], address = server.address.length > 17 ? server.address.slice(0,16) + '...' : server.address;
+    const badge = state === 'down' ? '<text class="mesh-badge down" x="0" y="38">DOWN</text>' : state === 'recovering' ? '<text class="mesh-badge recovering" x="0" y="38">RECOVERING</text>' : '';
+    return `<g class="mesh-node ${state}" transform="translate(${point.x} ${point.y})"><title>${server.address}: ${state}</title><circle r="29"/><text y="-3">Node ${i + 1}</text><text class="mesh-address" y="12">${address}</text>${badge}</g>`;
+  }).join('');
+  const allDown = states.every(state => state === 'down');
+  host.innerHTML = `<svg viewBox="0 0 300 220" role="img" aria-label="Live mesh topology">${links}${nodes}</svg>${allDown ? '<div class="mesh-offline">⚠ Mesh Offline<br><span>No active servers available.</span></div>' : ''}`;
+
+  const current = new Map(servers.map((server, i) => [server.address, {clients:server.clients, status:server.status, point:points[i]}]));
+  const statusChanged = servers.some(server => meshPrevious.has(server.address) && meshPrevious.get(server.address).status !== server.status);
+  if(statusChanged){
+    const sources = servers.filter(server => meshPrevious.has(server.address) && meshPrevious.get(server.address).clients > server.clients);
+    const targets = servers.filter(server => meshPrevious.has(server.address) && meshPrevious.get(server.address).clients < server.clients && meshState(server.status) === 'up');
+    sources.forEach(source => targets.forEach((target, targetIndex) => {
+      const from = meshPrevious.get(source.address).point, to = current.get(target.address).point;
+      const dot = document.createElement('span'); dot.className = 'mesh-client-dot';
+      dot.style.setProperty('--from-x', from.pX); dot.style.setProperty('--from-y', from.pY);
+      dot.style.setProperty('--to-x', to.pX); dot.style.setProperty('--to-y', to.pY);
+      dot.style.animationDelay = `${targetIndex * 110}ms`; host.appendChild(dot);
+      dot.addEventListener('animationend', () => dot.remove());
+    }));
+  }
+  meshPrevious = current;
+}
+
+function setApi(ok){
+  $('apiDot').className = 'dot ' + (ok ? 'ok' : 'bad');
+  $('apiText').textContent = ok ? 'API connected' : 'API unreachable (:9200)';
+}
+function fmtUptime(s){
+  s = Math.floor(s);
+  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), ss = s%60;
+  if (h) return `${h}h ${m}m`;
+  if (m) return `${m}m ${ss}s`;
+  return `${ss}s`;
+}
+
+function render(d){
+  setApi(true);
+  $('lbListen').textContent = `Load Balancer · ${d.listen}`;
+  $('kServers').textContent = d.healthy_count;
+  $('kServersSub').textContent = `${d.healthy_count} healthy / ${d.server_count} total`;
+  $('kServers').className = 'value ' + (d.healthy_count === d.server_count ? 'green' : (d.healthy_count ? 'accent' : ''));
+  $('kRequests').textContent = d.total_requests.toLocaleString();
+  $('kClients').textContent = d.client_total;
+  $('kUptime').textContent = fmtUptime(d.uptime_seconds);
+  $('kRedis').textContent = 'redis: ' + (d.redis ? 'connected' : 'in-memory');
+
+  // server cards
+  const sl = $('serverList');
+  if (!d.servers.length){ sl.innerHTML = '<div class="empty">No servers registered.</div>'; }
+  else {
+    sl.innerHTML = d.servers.map(s => {
+      const st = s.status;   // 'up' | 'paused' | 'down'
+      const badge = st==='up' ? '<span class="badge up">● Live</span>'
+        : st==='paused' ? '<span class="badge pause">❚❚ Paused</span>'
+        : '<span class="badge dn">● Down</span>';
+      let toggle = '';
+      if (st==='paused')   toggle = `<button class="mini up"   data-act="up"     data-addr="${s.address}">▲ Bring up</button>`;
+      else if (st==='up')  toggle = `<button class="mini down" data-act="down"   data-addr="${s.address}">❚❚ Take down</button>`;
+      const rm = s.removable ? `<button class="mini rm" data-act="remove" data-addr="${s.address}">✕ Remove</button>` : '';
+      const col = st==='up'?'var(--success)':st==='paused'?'var(--warning)':'var(--danger)';
+      return `
+      <div class="server ${st!=='up'?'off':''}">
+        <div class="server-top">
+          <span class="server-addr">${s.address}</span>
+          ${badge}
+          <span class="badge tag">${s.dynamic?'dynamic':'static'}</span>
+          <div style="flex:1"></div>
+          ${toggle}${rm}
+        </div>
+        <div class="server-stats">
+          <div class="s">Audience now<b>${s.clients.toLocaleString()}</b><span class="sub">currently routed</span></div>
+          <div class="s">Sticky home<b>${s.clients_home}</b><span class="sub">owning clients</span></div>
+          <div class="s">Status<b style="color:${col}">${st.toUpperCase()}</b></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  renderMesh(d.servers);
+  // enable/disable the Add Server button based on LB capability
+  $('addServerBtn').disabled = !d.can_add_servers;
+  $('addServerBtn').title = d.can_add_servers ? '' : 'LB started without a registration port';
+
+  // ── connected clients per server (sticky + failover/failback) ──
+  const cl = $('clientDist');
+  if (d.client_total === 0){
+    cl.innerHTML = '<div class="empty">No logged-in clients yet. Real client connections will appear here automatically.</div>';
+  } else {
+    const maxc = Math.max(1, ...d.servers.map(s => s.clients));
+    cl.innerHTML = d.servers.map((s,i) => {
+      const pct = d.client_total ? Math.round(s.clients / d.client_total * 100) : 0;
+      const w = Math.round(s.clients / maxc * 100);
+      const changed = lastClients[s.address] !== undefined && lastClients[s.address] !== s.clients;
+      const dn = s.status !== 'up';
+      return `
+      <div class="bar-row">
+        <span class="bar-label" title="${s.address}">${s.address}${dn?' · paused':''}</span>
+        <div class="bar-track ${changed?'flash':''}">
+          <div class="bar-fill ${dn?'down':''}" style="width:${w}%;${dn?'':`background:linear-gradient(90deg,${COLORS[i%COLORS.length]},${COLORS[i%COLORS.length]}bb)`}"></div>
+        </div>
+        <span class="bar-val">${s.clients}</span>
+        <span class="bar-pct">${pct}%</span>
+      </div>`;
+    }).join('');
+  }
+  lastClients = Object.fromEntries(d.servers.map(s => [s.address, s.clients]));
+}
+
+async function fetchStats(){
+  try{
+    const r = await fetch(`${ADMIN_API}/api/stats`, {cache:'no-store'});
+    if(!r.ok) throw new Error(r.status);
+    render(await r.json());
+  }catch(e){
+    setApi(false);
+    $('serverList').innerHTML = `<div class="empty">Can't reach the admin API on <code>${ADMIN_API}</code>.<br>Make sure the stack is running (<code>python run_stack.py</code>).</div>`;
+  }
+}
+
+// ── server controls ──────────────────────────────────────────────────
+let toastTimer;
+function toast(msg){
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+async function ctl(url, okMsg){
+  try{
+    const r = await fetch(`${ADMIN_API}${url}`, {method:'POST'});
+    const j = await r.json();
+    if(j.ok === false) toast('⚠️ ' + (j.reason || 'action failed'));
+    else if(okMsg) toast(okMsg);
+    await fetchStats();
+    return j;
+  }catch(e){ setApi(false); toast('⚠️ Could not reach the admin API'); }
+}
+// per-server buttons (event delegation, survives re-renders)
+$('serverList').addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-act]'); if(!btn) return;
+  const addr = btn.dataset.addr, act = btn.dataset.act;
+  if(act==='down')   ctl(`/api/servers/toggle?address=${encodeURIComponent(addr)}&down=1`, `⏸️ ${addr} taken down — traffic now routes to the others`);
+  if(act==='up')     ctl(`/api/servers/toggle?address=${encodeURIComponent(addr)}&down=0`, `▶️ ${addr} back in rotation`);
+  if(act==='remove') ctl(`/api/servers/remove?address=${encodeURIComponent(addr)}`, `✕ ${addr} removed from the cluster`);
+});
+$('addServerBtn').addEventListener('click', async () => {
+  $('addServerBtn').disabled = true;
+  await ctl('/api/servers/add', '🚀 New server launching — it registers with the LB in a second…');
+  setTimeout(fetchStats, 1600);   // give the node time to register + health-check
+});
+
+// This panel replaces the former load-balancer explainer without affecting the surrounding dashboard layout.
+$('meshTopology').closest('.panel').querySelector('h2').textContent = 'Mesh Topology';
+fetchStats();
+setInterval(fetchStats, 2000);
+</script>
+</body>
+</html>

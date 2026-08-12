@@ -1,0 +1,109 @@
+/* ==========================================================================
+   ClusterTalk — Animations
+   ========================================================================== */
+
+@keyframes pulse-dot {
+  0%   { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.55); }
+  70%  { box-shadow: 0 0 0 7px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+@keyframes pulse-dot-warn {
+  0%   { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.55); }
+  70%  { box-shadow: 0 0 0 7px rgba(245, 158, 11, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+}
+
+@keyframes ripple-expand {
+  to { transform: scale(3.2); opacity: 0; }
+}
+
+@keyframes typing-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+@keyframes send-fly {
+  0%   { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+  50%  { transform: translate(10px, -10px) rotate(20deg); opacity: 0.4; }
+  51%  { transform: translate(-10px, 10px) rotate(20deg); opacity: 0.4; }
+  100% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+}
+
+@keyframes skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes boot-pulse {
+  0%, 100% { transform: scale(1); box-shadow: var(--shadow-glow-accent); }
+  50% { transform: scale(1.08); box-shadow: 0 0 0 10px rgba(99, 102, 241, 0.08), 0 8px 32px rgba(99, 102, 241, 0.3); }
+}
+@keyframes boot-bar-slide {
+  0%   { transform: translateX(-120%); }
+  100% { transform: translateX(360%); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; } to { opacity: 1; }
+}
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pop-in {
+  0%   { opacity: 0; transform: scale(0.9) translateY(6px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes modal-in {
+  from { opacity: 0; transform: scale(0.94) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.anim-fade-in { animation: fade-in var(--dur-base) var(--ease-out) both; }
+.anim-fade-in-up { animation: fade-in-up var(--dur-slow) var(--ease-out) both; }
+.anim-pop-in { animation: pop-in var(--dur-slow) var(--ease-spring) both; }
+.anim-slide-in-right { animation: slide-in-right var(--dur-base) var(--ease-out) both; }
+.anim-modal-in { animation: modal-in var(--dur-slow) var(--ease-spring) both; }
+
+/* New message entering the list — subtle rise + fade, not a bounce */
+.message-row.msg-enter { animation: fade-in-up var(--dur-slow) var(--ease-out) both; }
+
+/* Room switch: outgoing list fades/slides down slightly, incoming
+   fades/slides up — driven by JS toggling these classes on swap. */
+.room-transition-out { animation: room-out var(--dur-base) var(--ease-in-out) both; }
+.room-transition-in { animation: room-in var(--dur-slow) var(--ease-out) both; }
+@keyframes room-out { to { opacity: 0; transform: translateY(-6px); } }
+@keyframes room-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Hover-lift utility for cards */
+.hover-lift { transition: transform var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out); }
+.hover-lift:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+/* Mesh node pulse (signature widget) */
+@keyframes mesh-node-pulse {
+  0%, 100% { r: 5.5; opacity: 1; }
+  50% { r: 7; opacity: 0.7; }
+}
+@keyframes mesh-packet-travel {
+  0% { offset-distance: 0%; opacity: 0; }
+  8% { opacity: 1; }
+  92% { opacity: 1; }
+  100% { offset-distance: 100%; opacity: 0; }
+}
+.mesh-node-self { animation: mesh-node-pulse 2.4s ease-in-out infinite; transform-origin: center; }
+.mesh-packet { offset-rotate: 0deg; animation: mesh-packet-travel 2.6s linear infinite; }
+
+/* Sidebar section chevron + generic dropdown reveal */
+.dropdown-panel {
+  animation: pop-in var(--dur-base) var(--ease-spring) both;
+  transform-origin: top right;
+}
+
+/* Toast lifecycle */
+.toast { animation: slide-in-right var(--dur-base) var(--ease-spring) both; }
+.toast.toast-leaving { animation: toast-out var(--dur-base) var(--ease-in-out) both; }
+@keyframes toast-out { to { opacity: 0; transform: translateX(20px); } }

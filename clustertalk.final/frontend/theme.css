@@ -1,0 +1,125 @@
+/* ==========================================================================
+   ClusterTalk — Design Tokens
+   Every color, font, radius, shadow and timing value the rest of the
+   CSS uses lives here. Nothing below this file should hardcode a hex
+   value or a px shadow — that's how "premium" stays consistent instead
+   of drifting file to file.
+   ========================================================================== */
+
+:root {
+  /* ---- Core surface colors -------------------------------------------- */
+  --bg: #0B1020;
+  --bg-elevated: #0E1426;
+  --surface: #141B2D;
+  --surface-2: #1A2338;
+  --surface-3: #202A42;
+  --border-subtle: rgba(148, 163, 184, 0.08);
+  --border: rgba(148, 163, 184, 0.14);
+  --border-strong: rgba(148, 163, 184, 0.24);
+
+  /* ---- Brand / semantic ------------------------------------------------ */
+  --accent: #6366F1;
+  --accent-hover: #7477F5;
+  --accent-active: #4F52D8;
+  --accent-soft: rgba(99, 102, 241, 0.14);
+  --accent-glow: rgba(99, 102, 241, 0.35);
+
+  --success: #22C55E;
+  --success-soft: rgba(34, 197, 94, 0.14);
+  --danger: #EF4444;
+  --danger-soft: rgba(239, 68, 68, 0.14);
+  --warning: #F59E0B;
+  --warning-soft: rgba(245, 158, 11, 0.14);
+
+  /* ---- Text -------------------------------------------------------------*/
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-tertiary: #5B6780;
+  --text-on-accent: #F8FAFC;
+
+  /* ---- Message bubbles ---------------------------------------------------*/
+  --bubble-self: #6366F1;
+  --bubble-self-text: #F8FAFC;
+  --bubble-other: #1E293B;
+  --bubble-other-text: #E2E8F0;
+
+  /* ---- Typography ---------------------------------------------------- */
+  --font-ui: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Space Grotesk', ui-monospace, SFMono-Regular, monospace;
+
+  --fs-2xs: 0.6875rem;
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.8125rem;
+  --fs-md: 0.9375rem;
+  --fs-lg: 1.0625rem;
+  --fs-xl: 1.25rem;
+  --fs-2xl: 1.5rem;
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  /* ---- Radii ----------------------------------------------------------- */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --radius-pill: 999px;
+
+  /* ---- Shadows (multi-layer, soft) -------------------------------------- */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.24);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.28), 0 1px 2px rgba(0, 0, 0, 0.24);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.34), 0 2px 8px rgba(0, 0, 0, 0.24);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.42), 0 4px 16px rgba(0, 0, 0, 0.28);
+  --shadow-glow-accent: 0 0 0 1px rgba(99, 102, 241, 0.4), 0 8px 32px rgba(99, 102, 241, 0.22);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  /* ---- Glass ------------------------------------------------------------ */
+  --glass-bg: rgba(20, 27, 45, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --glass-blur: 20px;
+
+  /* ---- Motion ------------------------------------------------------------ */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 360ms;
+
+  /* ---- Layout ------------------------------------------------------------ */
+  --sidebar-left-w: 288px;
+  --sidebar-right-w: 296px;
+  --header-h: 64px;
+  --composer-min-h: 56px;
+}
+
+/* Light theme override — toggled via [data-theme="light"] on <html>.
+   The brief calls for dark-first, so light intentionally trades some
+   of the glow/depth for flatter, print-like clarity rather than
+   trying to force glassmorphism onto a white canvas. */
+[data-theme='light'] {
+  --bg: #F4F6FB;
+  --bg-elevated: #FFFFFF;
+  --surface: #FFFFFF;
+  --surface-2: #EEF1F8;
+  --surface-3: #E4E8F3;
+  --border-subtle: rgba(15, 23, 42, 0.06);
+  --border: rgba(15, 23, 42, 0.1);
+  --border-strong: rgba(15, 23, 42, 0.18);
+
+  --text-primary: #0F172A;
+  --text-secondary: #52607A;
+  --text-tertiary: #8E97AC;
+
+  --bubble-other: #EEF1F8;
+  --bubble-other-text: #1E293B;
+
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(15, 23, 42, 0.06);
+
+  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08), 0 2px 8px rgba(15, 23, 42, 0.05);
+  --shadow-lg: 0 16px 48px rgba(15, 23, 42, 0.12), 0 4px 16px rgba(15, 23, 42, 0.06);
+}

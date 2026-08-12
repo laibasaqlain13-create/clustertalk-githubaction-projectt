@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environments
+.venv/
+.venv-*/
+venv/
+env/
+
+# SQLite databases (runtime state — regenerated on start)
+*.db
+*.db-shm
+*.db-wal
+*.sqlite3
+
+# Logs
+logs/
+*.log
+
+# Secrets / local config
+.env
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

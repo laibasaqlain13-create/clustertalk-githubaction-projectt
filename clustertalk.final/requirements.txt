@@ -1,0 +1,16 @@
+# ClusterTalk backend dependencies
+#   Install with:  python -m pip install -r requirements.txt
+#
+# Tested on Python 3.13.
+
+# Fast JSON (de)serialization for the wire protocol (protocol/framing.py).
+orjson>=3.11,<4
+
+# WebSocket server for the browser <-> TCP bridge (ingress/ws_bridge.py).
+websockets>=14,<17
+
+# OPTIONAL: only used by the load balancer (ingress/lb.py) for cross-restart
+# sticky-session persistence. If it's not installed, or no Redis server is
+# reachable, the LB automatically falls back to an in-memory sticky cache and
+# logs a warning — it does NOT crash. Uncomment to enable Redis-backed stickiness.
+# redis>=5,<9
