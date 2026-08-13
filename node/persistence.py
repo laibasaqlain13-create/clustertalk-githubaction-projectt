@@ -374,9 +374,7 @@ class OutboxStore:
                 "room_id": row[2],
             }
 
-
-
-     finally:
+        finally:
             conn.close()
 
     async def load_outbox(self, session_id: str) -> list[dict]:
