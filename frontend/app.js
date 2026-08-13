@@ -1375,7 +1375,7 @@ function injectLoginFormHTML() {
       <p id="loginSubtitle">Distributed mesh chat</p>
       <div id="loginTabs">
         <button type="button" id="tabSignin">Client login</button>
-        <button type="button" id="tabRegister">Create Account</button>
+        <button type="button" id="tabRegister">create Account</button>
         <button type="button" id="tabAdmin">Admin login</button>
       </div>
       <div id="loginError" style="display:none"></div>
@@ -1455,7 +1455,7 @@ function setLoginMode(mode) {
   if (si) si.classList.toggle('active', mode === 'login');
   if (rg) rg.classList.toggle('active', mode === 'register');
   if (ad) ad.classList.toggle('active', mode === 'admin');
-  if (btn) btn.textContent = mode === 'register' ? 'Create Account' : (mode === 'admin' ? 'Admin Login' : 'Client Login');
+  if (btn) btn.textContent = mode === 'register' ? 'Create account' : (mode === 'admin' ? 'Admin Login' : 'Client Login');
   if (hint) hint.textContent = mode === 'register'
     ? 'Choose a username & password \u2014 your client account is created instantly.'
     : (mode === 'admin' ? 'Use an administrator account to open the dashboard.' : 'Sign in to join the conversation.');
