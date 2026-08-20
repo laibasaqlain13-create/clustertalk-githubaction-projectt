@@ -2,24 +2,26 @@ name: Python Build, Test, Security & Deploy
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
-# GitHub Pages Deployment Permissions
+# GitHub Pages permissions
 permissions:
   contents: read
   pages: write
   id-token: write
 
+# Prevent multiple Pages deployments at the same time
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
 jobs:
-  # -------------------------------------------------------------
-  # JOB 1: Build & Compile Check
-  # -------------------------------------------------------------
+
+  # ============================================================
+  # JOB 1: BUILD
+  # ============================================================
   build:
     name: Build & Compile Python
     runs-on: ubuntu-latest
@@ -28,24 +30,62 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # -------------------------
+      # Python Setup
+      # -------------------------
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
           cache: "pip"
 
-      - name: Install Dependencies
+      # -------------------------
+      # Install Python Dependencies
+      # -------------------------
+      - name: Install Python Dependencies
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Compile Python Files (Syntax Check)
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+
+      # -------------------------
+      # Compile Python
+      # -------------------------
+      - name: Compile Python Files
         run: |
           python -m compileall .
 
-  # -------------------------------------------------------------
-  # JOB 2: Automated Unit Testing
-  # -------------------------------------------------------------
+      # -------------------------
+      # Setup Node if package.json exists
+      # -------------------------
+      - name: Setup Node.js
+        if: ${{ hashFiles('package.json') != '' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # -------------------------
+      # Install Frontend Dependencies
+      # -------------------------
+      - name: Install Frontend Dependencies
+        if: ${{ hashFiles('package.json') != '' }}
+        run: |
+          npm install
+
+      # -------------------------
+      # Build Frontend
+      # -------------------------
+      - name: Build Frontend
+        if: ${{ hashFiles('package.json') != '' }}
+        run: |
+          npm run build
+
+  # ============================================================
+  # JOB 2: TEST
+  # ============================================================
   test:
     name: Run Unit Tests
     runs-on: ubuntu-latest
@@ -64,7 +104,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pytest
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
 
       - name: Run Tests
         run: |
@@ -74,9 +117,9 @@ jobs:
             echo "No unit tests found. Skipping pytest."
           fi
 
-  # -------------------------------------------------------------
-  # JOB 3: Security & Vulnerability Analysis
-  # -------------------------------------------------------------
+  # ============================================================
+  # JOB 3: SECURITY
+  # ============================================================
   security:
     name: Security Analysis
     runs-on: ubuntu-latest
@@ -96,39 +139,141 @@ jobs:
           python -m pip install --upgrade pip
           pip install bandit safety
 
-      - name: Scan Code for Security Issues (Bandit)
+      # -------------------------
+      # Bandit Security Scan
+      # -------------------------
+      - name: Scan Code with Bandit
         run: |
-          bandit -r . -x ./.venv || echo "Security issues found, review bandit logs."
+          bandit -r . -x ./.venv || true
 
-      - name: Scan Dependencies for Known Vulnerabilities (Safety)
+      # -------------------------
+      # Dependency Security Scan
+      # -------------------------
+      - name: Scan Dependencies with Safety
         run: |
           if [ -f requirements.txt ]; then
-            safety check -r requirements.txt || echo "Vulnerabilities found in requirements.txt."
+            safety check -r requirements.txt || true
+          else
+            echo "requirements.txt not found. Skipping Safety scan."
           fi
 
-  # -------------------------------------------------------------
-  # JOB 4: Deployment (GitHub Pages)
-  # -------------------------------------------------------------
+  # ============================================================
+  # JOB 4: DEPLOY TO GITHUB PAGES
+  # ============================================================
   deploy:
     name: Deploy to GitHub Pages
     runs-on: ubuntu-latest
-    needs: [build, test, security]
+
+    needs:
+      - build
+      - test
+      - security
+
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
+
+      # -------------------------
+      # Checkout
+      # -------------------------
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Pages
+      # -------------------------
+      # Setup Pages
+      # -------------------------
+      - name: Setup GitHub Pages
         uses: actions/configure-pages@v5
 
-      - name: Upload Artifacts
+      # -------------------------
+      # Setup Node
+      # -------------------------
+      - name: Setup Node.js
+        if: ${{ hashFiles('package.json') != '' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # -------------------------
+      # Install Frontend
+      # -------------------------
+      - name: Install Frontend Dependencies
+        if: ${{ hashFiles('package.json') != '' }}
+        run: |
+          npm install
+
+      # -------------------------
+      # Build Frontend
+      # -------------------------
+      - name: Build Frontend
+        if: ${{ hashFiles('package.json') != '' }}
+        run: |
+          npm run build
+
+      # ========================================================
+      # FIND WEBSITE DIRECTORY
+      # ========================================================
+      - name: Find Website Directory
+        run: |
+          echo "Searching for index.html..."
+
+          if [ -f "./dist/index.html" ]; then
+            echo "Website found in dist/"
+            echo "SITE_DIR=./dist" >> "$GITHUB_ENV"
+
+          elif [ -f "./build/index.html" ]; then
+            echo "Website found in build/"
+            echo "SITE_DIR=./build" >> "$GITHUB_ENV"
+
+          elif [ -f "./frontend/index.html" ]; then
+            echo "Website found in frontend/"
+            echo "SITE_DIR=./frontend" >> "$GITHUB_ENV"
+
+          elif [ -f "./index.html" ]; then
+            echo "Website found in root directory"
+            echo "SITE_DIR=." >> "$GITHUB_ENV"
+
+          else
+            echo "=========================================="
+            echo "ERROR: index.html was not found!"
+            echo "=========================================="
+            echo ""
+            echo "GitHub Pages needs an index.html file."
+            echo ""
+            echo "Checked:"
+            echo "  ./dist/index.html"
+            echo "  ./build/index.html"
+            echo "  ./frontend/index.html"
+            echo "  ./index.html"
+            echo ""
+            echo "Please check your website structure."
+            exit 1
+          fi
+
+      # ========================================================
+      # SHOW DEPLOYMENT FILES
+      # ========================================================
+      - name: Verify Website Files
+        run: |
+          echo "Deploying from: $SITE_DIR"
+          echo ""
+          echo "Website files:"
+          find "$SITE_DIR" -maxdepth 2 -type f | head -100
+
+      # ========================================================
+      # UPLOAD WEBSITE
+      # ========================================================
+      - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: ${{ env.SITE_DIR }}
 
+      # ========================================================
+      # DEPLOY
+      # ========================================================
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
