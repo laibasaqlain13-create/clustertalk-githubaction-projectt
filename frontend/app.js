@@ -1373,7 +1373,9 @@ function injectLoginFormHTML() {
       <div id="loginLogo"><img src="logo.png" onerror="this.onerror=null;this.src='logo.svg'" alt="ClusterTalk" /></div>
       <h2 id="loginTitle">ClusterTalk</h2>
       <p id="loginSubtitle">Distributed mesh chat</p>
-      <div id="loginTabs">
+      <div id="loginTabs">git add .
+git commit -m "Updated frontend"
+git push origin main
         <button type="button" id="tabSignin">Client</button>
         <button type="button" id="tabRegister">Create Account</button>
         <button type="button" id="tabAdmin">Admin</button>
@@ -1455,7 +1457,7 @@ function setLoginMode(mode) {
   if (si) si.classList.toggle('active', mode === 'login');
   if (rg) rg.classList.toggle('active', mode === 'register');
   if (ad) ad.classList.toggle('active', mode === 'admin');
-  if (btn) btn.textContent = mode === 'register' ? 'Create Account' : (mode === 'admin' ? 'Admin' : 'Client');
+  if (btn) btn.textContent = mode === 'register' ? 'Create Account' : (mode === 'admin' ? 'login' : 'login');
   if (hint) hint.textContent = mode === 'register'
     ? 'Choose a username & password \u2014 your client account is created instantly.'
     : (mode === 'admin' ? 'Use an administrator account to open the dashboard.' : 'Sign in to join the conversation.');
