@@ -1375,7 +1375,7 @@ function injectLoginFormHTML() {
       <p id="loginSubtitle">Distributed mesh chat</p>
       <div id="loginTabs">
         <button type="button" id="tabSignin">Client</button>
-        <button type="button" id="tabRegister">create Account</button>
+        <button type="button" id="tabRegister">Create Account</button>
         <button type="button" id="tabAdmin">Admin</button>
       </div>
       <div id="loginError" style="display:none"></div>
@@ -1509,7 +1509,7 @@ function showLoginError(msg) {
   const errEl = document.getElementById('loginError');
   const btn   = document.getElementById('loginBtn');
   if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
-  if (btn)   { btn.disabled = false; btn.textContent = _loginMode === 'register' ? 'Create Account' : (_loginMode === 'admin' ? 'Admin' : 'Client'); }
+  if (btn)   { btn.disabled = false; btn.textContent = _loginMode === 'register' ? 'Create Account' : (_loginMode === 'admin' ? 'login' : 'login'); }
 }
 
 function hideLoginError() {
