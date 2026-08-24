@@ -1373,9 +1373,7 @@ function injectLoginFormHTML() {
       <div id="loginLogo"><img src="logo.png" onerror="this.onerror=null;this.src='logo.svg'" alt="ClusterTalk" /></div>
       <h2 id="loginTitle">ClusterTalk</h2>
       <p id="loginSubtitle">Distributed mesh chat</p>
-      <div id="loginTabs">git add .
-git commit -m "Updated frontend"
-git push origin main
+      <div id="loginTabs">
         <button type="button" id="tabSignin">Client</button>
         <button type="button" id="tabRegister">Create Account</button>
         <button type="button" id="tabAdmin">Admin</button>
