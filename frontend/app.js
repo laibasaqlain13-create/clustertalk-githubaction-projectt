@@ -1509,7 +1509,7 @@ function showLoginError(msg) {
   const errEl = document.getElementById('loginError');
   const btn   = document.getElementById('loginBtn');
   if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
-  if (btn)   { btn.disabled = false; btn.textContent = _loginMode === 'register' ? 'Create Account' : (_loginMode === 'admin' ? 'Admin Login' : 'Client Login'); }
+  if (btn)   { btn.disabled = false; btn.textContent = _loginMode === 'register' ? 'Create Account' : (_loginMode === 'admin' ? 'Admin' : 'Client'); }
 }
 
 function hideLoginError() {
