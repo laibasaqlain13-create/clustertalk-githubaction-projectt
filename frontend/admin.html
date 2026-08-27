@@ -223,7 +223,7 @@ if (localStorage.getItem('ct_role') !== 'admin') {
   location.replace('index.html');
 }
 
-const ADMIN_API = `${location.protocol}//${location.hostname}:9200`;
+const ADMIN_API = window.location.origin;
 const COLORS = ['#6366F1','#22C55E','#F59E0B','#EC4899','#0EA5E9','#8B5CF6'];
 
 const $ = (id) => document.getElementById(id);
