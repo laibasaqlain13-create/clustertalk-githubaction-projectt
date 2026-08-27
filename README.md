@@ -92,7 +92,7 @@ board. Configure its bootstrap credentials before starting the stack:
 
 ```powershell
 $env:CLUSTERTALK_ADMIN_USERNAME = 'admin'
-$env:CLUSTERTALK_ADMIN_PASSWORD = 'use-a-long-unique-password'
+$env:CLUSTERTALK_ADMIN_PASSWORD = '123456'
 python run_stack.py --mesh --open
 ```
 

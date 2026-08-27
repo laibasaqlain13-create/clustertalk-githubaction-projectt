@@ -37,6 +37,7 @@ import argparse
 import asyncio
 import logging
 
+from database import default_database_path
 from server import ChatNode
 
 
@@ -51,7 +52,7 @@ async def main() -> None:
     parser = argparse.ArgumentParser(description="Run a ClusterTalk chat node")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)
-    parser.add_argument("--db", default="clustertalk.db")
+    parser.add_argument("--db", default=None)
     parser.add_argument("--auth-db", default=None,
                         help="shared credentials SQLite DB; use the same path for every mesh node")
     parser.add_argument("--node-id", default=None, help="stable identity for this node in the mesh")
@@ -78,7 +79,7 @@ async def main() -> None:
     )
 
     node = ChatNode(
-        db_path=args.db, host=args.host, port=args.port,
+        db_path=args.db or default_database_path(), host=args.host, port=args.port,
         node_id=args.node_id, mesh_host=args.mesh_host,
         mesh_port=args.mesh_port, peer_addresses=args.peers,
         advertise_host=args.advertise_host,

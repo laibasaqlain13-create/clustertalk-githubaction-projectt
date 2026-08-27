@@ -107,6 +107,7 @@ from framing import (
 )
 from mesh import PeerManager
 from auth_store import AuthStore
+from database import ensure_database_parent
 from persistence import OutboxStore
 from session_manager import SessionManager
 
@@ -216,9 +217,9 @@ class ChatNode:
         self.host = host
         self.port = port
         self._actual_port: int | None = None
-        self._db_path = db_path
+        self._db_path = ensure_database_parent(db_path)
         self._store: OutboxStore | None = None
-        self._auth_store = AuthStore(auth_db_path or db_path)
+        self._auth_store = AuthStore(auth_db_path or self._db_path)
         self._session_manager: SessionManager | None = None
 
         self._connections: dict[str, asyncio.StreamWriter] = {}
@@ -249,8 +250,8 @@ class ChatNode:
         self._store = OutboxStore(self._db_path)
         self._store.start()
         self._auth_store.start()
-        admin_user = os.getenv("CLUSTERTALK_ADMIN_USERNAME")
-        admin_password = os.getenv("CLUSTERTALK_ADMIN_PASSWORD")
+        admin_user = os.getenv("CLUSTERTALK_ADMIN_USERNAME", "admin")
+        admin_password = os.getenv("CLUSTERTALK_ADMIN_PASSWORD", "123456")
         if admin_user and admin_password:
             await self._auth_store.bootstrap_admin(
                 admin_user, await asyncio.to_thread(_hash_password, admin_password)
