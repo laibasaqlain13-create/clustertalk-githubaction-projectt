@@ -50,7 +50,7 @@ NODE_PORT = 8765
 LB_PORT = 9000
 BRIDGE_WS_PORT = 8090
 FRONTEND_HOST = "0.0.0.0"
-FRONTEND_PORT = int(os.environ.get("PORT", 5000))
+FRONTEND_PORT = int(os.environ.get("PORT", 8080))
 
 _procs: list[tuple[str, subprocess.Popen]] = []
 
