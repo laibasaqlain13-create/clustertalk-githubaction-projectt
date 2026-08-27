@@ -51,8 +51,8 @@ def _parse_peer(value: str) -> tuple[str, int]:
 
 async def main() -> None:
     parser = argparse.ArgumentParser(description="Run a ClusterTalk chat node")
-    parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", 8765)))
+    parser.add_argument("--host", default="0.0.0.0")
+    parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", 8080)))
     parser.add_argument("--db", default=None)
     parser.add_argument("--auth-db", default=None,
                         help="shared credentials SQLite DB; use the same path for every mesh node")
@@ -65,7 +65,7 @@ async def main() -> None:
                          help="another node's mesh-port; repeat once per peer")
     parser.add_argument("--advertise-host", default=None,
                          help="address other machines/the LB should use to reach --port "
-                              "(defaults to --host, or 127.0.0.1 if --host is 0.0.0.0)")
+                              "(defaults to --host, or 0.0.0.0 if --host is 0.0.0.0)")
     parser.add_argument("--lb-register-host", default=None,
                          help="LB's registration host (see run_lb.py --register-port)")
     parser.add_argument("--lb-register-port", type=int, default=None,

@@ -889,8 +889,6 @@ class ChatNode:
 
     async def _register_with_lb_loop(self) -> None:
         advertise_host = self._advertise_host or self.host
-        if advertise_host == "0.0.0.0":
-            advertise_host = "127.0.0.1"
 
         while True:
             try:
