@@ -55,6 +55,12 @@ BRIDGE_WS_PORT = int(os.environ.get("PORT", 8080))
 FRONTEND_HOST = "0.0.0.0"
 FRONTEND_PORT = int(os.environ.get("PORT", 8080))
 
+
+def _start_background_thread(target, *args):
+    thread = threading.Thread(target=target, args=args, daemon=True)
+    thread.start()
+    return thread
+
 _procs: list[tuple[str, subprocess.Popen]] = []
 
 
@@ -133,11 +139,11 @@ class _NoCacheHandler(http.server.SimpleHTTPRequestHandler):
         pass
 
 
-def _serve_frontend() -> socketserver.TCPServer:
+def _serve_frontend() -> http.server.ThreadingHTTPServer:
     handler = functools.partial(_NoCacheHandler, directory=str(ROOT / "frontend"))
-    socketserver.TCPServer.allow_reuse_address = True
-    httpd = socketserver.TCPServer((FRONTEND_HOST, FRONTEND_PORT), handler)
-    threading.Thread(target=httpd.serve_forever, daemon=True).start()
+    http.server.ThreadingHTTPServer.allow_reuse_address = True
+    httpd = http.server.ThreadingHTTPServer((FRONTEND_HOST, FRONTEND_PORT), handler)
+    _start_background_thread(httpd.serve_forever)
     return httpd
 
 

@@ -258,13 +258,30 @@ class ChatNode:
             )
         self._session_manager = SessionManager(self._store)
 
-        self._retry_task = asyncio.create_task(self._retry_loop())
-        self._server = await asyncio.start_server(
-            self._handle_client, self.host, self.port
-        )
+        bind_host = self.host or "0.0.0.0"
+        bind_port = self.port if self.port is not None else int(os.environ.get("PORT", 8080))
+        self.host = bind_host
+        self.port = bind_port
+
+        try:
+            self._server = await asyncio.start_server(
+                self._handle_client, bind_host, bind_port
+            )
+        except OSError:
+            logger.warning(
+                "node bind failed on %s:%s; retrying with an ephemeral local port",
+                bind_host,
+                bind_port,
+            )
+            self._server = await asyncio.start_server(
+                self._handle_client, bind_host, 0
+            )
         addr = self._server.sockets[0].getsockname()
         self._actual_port = addr[1]
+        self.port = self._actual_port
         logger.info("ChatNode listening on %s:%s", addr[0], addr[1])
+
+        self._retry_task = asyncio.create_task(self._retry_loop())
 
         if self._mesh_port is not None:
             self._mesh = PeerManager(
