@@ -33,6 +33,7 @@ from __future__ import annotations
 import argparse
 import functools
 import http.server
+import os
 import socketserver
 import subprocess
 import sys
@@ -48,7 +49,8 @@ NODE_HOST = "127.0.0.1"
 NODE_PORT = 8765
 LB_PORT = 9000
 BRIDGE_WS_PORT = 8090
-FRONTEND_PORT = 5500
+FRONTEND_HOST = "0.0.0.0"
+FRONTEND_PORT = int(os.environ.get("PORT", 5000))
 
 _procs: list[tuple[str, subprocess.Popen]] = []
 
@@ -80,7 +82,7 @@ def _serve_frontend() -> socketserver.TCPServer:
     handler = functools.partial(_NoCacheHandler, directory=str(ROOT / "frontend"))
     # allow_reuse_address avoids "address already in use" on quick restarts
     socketserver.TCPServer.allow_reuse_address = True
-    httpd = socketserver.TCPServer((NODE_HOST, FRONTEND_PORT), handler)
+    httpd = socketserver.TCPServer((FRONTEND_HOST, FRONTEND_PORT), handler)
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
     return httpd
 
