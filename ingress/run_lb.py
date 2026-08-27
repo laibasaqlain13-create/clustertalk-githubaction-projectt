@@ -29,7 +29,7 @@ def _parse_backend(spec: str) -> tuple[str, int]:
 
 async def main() -> None:
     parser = argparse.ArgumentParser(description="Run the ClusterTalk Ingress LB")
-    parser.add_argument("--host", default="127.0.0.1")
+    parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=9000)
     parser.add_argument(
         "--backend", action="append", default=[],

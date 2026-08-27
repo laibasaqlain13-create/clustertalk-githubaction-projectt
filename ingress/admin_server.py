@@ -206,7 +206,7 @@ def make_handler(lb, spawner: NodeSpawner | None):
 
 def start_admin_server(
     lb, host: str, port: int,
-    register_host: str = "127.0.0.1", register_port: int | None = None,
+    register_host: str = "0.0.0.0", register_port: int | None = None,
 ) -> http.server.ThreadingHTTPServer:
     """
     Start the admin API on host:port in a daemon thread. If register_port

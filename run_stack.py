@@ -39,16 +39,19 @@ import subprocess
 import sys
 import threading
 import time
+import urllib.parse
+import urllib.request
 import webbrowser
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 PY = sys.executable  # the interpreter running this script (ideally the venv's)
 
-NODE_HOST = "127.0.0.1"
+NODE_HOST = "0.0.0.0"
 NODE_PORT = 8765
 LB_PORT = 9000
-BRIDGE_WS_PORT = 8090
+LB_ADMIN_PORT = int(os.environ.get("ADMIN_PORT", 9200))
+BRIDGE_WS_PORT = int(os.environ.get("PORT", 8080))
 FRONTEND_HOST = "0.0.0.0"
 FRONTEND_PORT = int(os.environ.get("PORT", 8080))
 
@@ -63,10 +66,7 @@ def _spawn(name: str, args: list[str], cwd: Path) -> subprocess.Popen:
 
 
 class _NoCacheHandler(http.server.SimpleHTTPRequestHandler):
-    """Serves the frontend with caching disabled, so edits to app.js/CSS
-    are always picked up on reload instead of the browser silently serving
-    a stale cached copy (which otherwise makes a fixed bug still look
-    broken until a manual hard-refresh)."""
+    """Serves the frontend and proxies admin traffic through the public entrypoint."""
 
     def end_headers(self):
         self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
@@ -74,13 +74,67 @@ class _NoCacheHandler(http.server.SimpleHTTPRequestHandler):
         self.send_header("Expires", "0")
         super().end_headers()
 
+    def _proxy_to_admin(self):
+        target = f"http://127.0.0.1:{LB_ADMIN_PORT}{self.path}"
+        try:
+            req = urllib.request.Request(target, method=self.command, headers={
+                "Content-Type": self.headers.get("Content-Type", "application/json"),
+                "Accept": self.headers.get("Accept", "application/json"),
+            })
+            body = None
+            if self.command in {"POST", "PUT", "PATCH"}:
+                length = self.headers.get("Content-Length")
+                if length:
+                    body = self.rfile.read(int(length))
+                    req.data = body
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                payload = resp.read()
+                self.send_response(resp.status)
+                for key, value in resp.headers.items():
+                    if key.lower() in {"content-length", "content-type", "access-control-allow-origin", "access-control-allow-methods", "access-control-allow-headers", "cache-control"}:
+                        self.send_header(key, value)
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+                self.send_header("Access-Control-Allow-Headers", "Content-Type")
+                self.end_headers()
+                if payload:
+                    self.wfile.write(payload)
+            return
+        except Exception:
+            self.send_response(502)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(b'{"ok": false, "reason": "admin proxy unavailable"}')
+
+    def do_GET(self):
+        if self.path.startswith("/api/") or self.path in {"/api", "/api/health", "/stats"}:
+            self._proxy_to_admin()
+            return
+        return super().do_GET()
+
+    def do_POST(self):
+        if self.path.startswith("/api/") or self.path in {"/api", "/stats"}:
+            self._proxy_to_admin()
+            return
+        return super().do_POST()
+
+    def do_OPTIONS(self):
+        if self.path.startswith("/api/") or self.path in {"/api", "/stats"}:
+            self.send_response(204)
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type")
+            self.end_headers()
+            return
+        return super().do_OPTIONS()
+
     def log_message(self, *args):  # quieter console
         pass
 
 
 def _serve_frontend() -> socketserver.TCPServer:
     handler = functools.partial(_NoCacheHandler, directory=str(ROOT / "frontend"))
-    # allow_reuse_address avoids "address already in use" on quick restarts
     socketserver.TCPServer.allow_reuse_address = True
     httpd = socketserver.TCPServer((FRONTEND_HOST, FRONTEND_PORT), handler)
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
@@ -181,7 +235,7 @@ def main() -> None:
         # WebSocket bridge -> LB
         _spawn(
             "bridge",
-            ["ws_bridge.py", "--ws-host", NODE_HOST, "--ws-port", str(BRIDGE_WS_PORT),
+            ["ws_bridge.py", "--ws-host", FRONTEND_HOST, "--ws-port", str(BRIDGE_WS_PORT),
              "--tcp-host", NODE_HOST, "--tcp-port", str(LB_PORT)],
             cwd=ROOT / "ingress",
         )
