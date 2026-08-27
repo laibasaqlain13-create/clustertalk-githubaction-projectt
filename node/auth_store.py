@@ -1,5 +1,4 @@
 # node/auth_store.py
-
 """Cluster-wide credential store used by every chat node.
 
 Session/outbox state stays local to a node, but credentials must be shared or

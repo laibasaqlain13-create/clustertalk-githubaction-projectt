@@ -136,7 +136,8 @@ function isMockModeEnabled() {
 }
 
 const MOCK_MODE = isMockModeEnabled(); // falls back to mock data when the stack is not available
-const BRIDGE_URL = 'ws://localhost:8090/bridge';
+const API_BASE_URL = 'https://your-railway-backend-url.up.railway.app';
+const BRIDGE_URL = `${API_BASE_URL.replace(/^http/, 'ws')}/bridge`;
 
 class ClusterTalkClient {
   constructor() {
