@@ -93,6 +93,7 @@ import logging
 import os
 import sys
 import time
+import traceback
 import uuid
 from pathlib import Path
 
@@ -972,3 +973,26 @@ class ChatNode:
             session_id for session_id in self._session_manager.session_ids_in_room(room_id)
             if session_id in self._connections
         ]
+
+
+async def main() -> None:
+    host = "0.0.0.0"
+    port = int(os.environ.get("PORT", 8080))
+    db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "server.db")
+    os.makedirs(os.path.dirname(db_path), exist_ok=True)
+    node = ChatNode(db_path=db_path, host=host, port=port)
+    await node.start()
+    try:
+        await node.serve_forever()
+    except (KeyboardInterrupt, asyncio.CancelledError):
+        pass
+    finally:
+        await node.stop()
+
+
+if __name__ == "__main__":
+    try:
+        asyncio.run(main())
+    except Exception:
+        traceback.print_exc()
+        raise
