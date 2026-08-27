@@ -47,13 +47,21 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 PY = sys.executable  # the interpreter running this script (ideally the venv's)
 
+PORT = int(os.environ.get("PORT", 8080))
 NODE_HOST = "0.0.0.0"
 NODE_PORT = 8765
 LB_PORT = 9000
 LB_ADMIN_PORT = int(os.environ.get("ADMIN_PORT", 9200))
-BRIDGE_WS_PORT = int(os.environ.get("PORT", 8080))
+BRIDGE_WS_PORT = PORT
 FRONTEND_HOST = "0.0.0.0"
-FRONTEND_PORT = int(os.environ.get("PORT", 8080))
+FRONTEND_PORT = PORT
+
+os.makedirs(str(ROOT / "data"), exist_ok=True)
+if os.name != "nt":
+    try:
+        os.makedirs("/app/data", exist_ok=True)
+    except OSError:
+        pass
 
 
 def _start_background_thread(target, *args):
@@ -64,11 +72,15 @@ def _start_background_thread(target, *args):
 _procs: list[tuple[str, subprocess.Popen]] = []
 
 
-def _spawn(name: str, args: list[str], cwd: Path) -> subprocess.Popen:
-    print(f"[stack] starting {name:7s}: {Path(args[0]).name} {' '.join(args[1:])}")
-    proc = subprocess.Popen([PY, "-u", *args], cwd=str(cwd))
-    _procs.append((name, proc))
-    return proc
+def _spawn(name: str, args: list[str], cwd: Path) -> subprocess.Popen | None:
+    try:
+        print(f"[stack] starting {name:7s}: {Path(args[0]).name} {' '.join(args[1:])}")
+        proc = subprocess.Popen([PY, "-u", *args], cwd=str(cwd), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        _procs.append((name, proc))
+        return proc
+    except Exception as exc:
+        print(f"[stack] startup failed for {name}: {exc}")
+        return None
 
 
 class _NoCacheHandler(http.server.SimpleHTTPRequestHandler):
@@ -148,37 +160,43 @@ def _serve_frontend() -> http.server.ThreadingHTTPServer:
 
 
 def _boot_single_node() -> None:
-    _spawn(
-        "node",
-        ["run_node.py", "--host", NODE_HOST, "--port", str(NODE_PORT), "--db", "clustertalk.db"],
-        cwd=ROOT / "node",
-    )
+    try:
+        _spawn(
+            "node",
+            ["run_node.py", "--host", NODE_HOST, "--port", str(NODE_PORT), "--db", "clustertalk.db"],
+            cwd=ROOT / "node",
+        )
+    except Exception as exc:
+        print(f"[stack] node startup guarded: {exc}")
     time.sleep(1.5)
-    _spawn(
-        "lb",
-        ["run_lb.py", "--host", NODE_HOST, "--port", str(LB_PORT),
-         "--backend", f"{NODE_HOST}:{NODE_PORT}",
-         # register listener so the admin dashboard can spawn extra nodes
-         "--register-port", "9100"],
-        cwd=ROOT / "ingress",
-    )
+    try:
+        _spawn(
+            "lb",
+            ["run_lb.py", "--host", NODE_HOST, "--port", str(LB_PORT),
+             "--backend", f"{NODE_HOST}:{NODE_PORT}",
+             "--register-port", "9100"],
+            cwd=ROOT / "ingress",
+        )
+    except Exception as exc:
+        print(f"[stack] lb startup guarded: {exc}")
     time.sleep(1.0)
 
 
 def _boot_mesh() -> None:
     """3 meshed nodes, all registering with the LB dynamically."""
     nodes = [
-        # (client_port, mesh_port, node_id, peer_mesh_ports, db)
         (8765, 9765, "A", [9766, 9767], "a.db"),
         (8766, 9766, "B", [9765, 9767], "b.db"),
         (8767, 9767, "C", [9765, 9766], "c.db"),
     ]
-    # LB with dynamic registration listener; nodes announce themselves.
-    _spawn(
-        "lb",
-        ["run_lb.py", "--host", NODE_HOST, "--port", str(LB_PORT), "--register-port", "9100"],
-        cwd=ROOT / "ingress",
-    )
+    try:
+        _spawn(
+            "lb",
+            ["run_lb.py", "--host", NODE_HOST, "--port", str(LB_PORT), "--register-port", "9100"],
+            cwd=ROOT / "ingress",
+        )
+    except Exception as exc:
+        print(f"[stack] mesh lb startup guarded: {exc}")
     time.sleep(1.0)
     auth_db = str(ROOT / "clustertalk-auth.db")
     for client_port, mesh_port, node_id, peers, db in nodes:
@@ -189,7 +207,10 @@ def _boot_mesh() -> None:
                 "--lb-register-host", NODE_HOST, "--lb-register-port", "9100"]
         for p in peers:
             args += ["--peer", f"{NODE_HOST}:{p}"]
-        _spawn(f"node-{node_id}", args, cwd=ROOT / "node")
+        try:
+            _spawn(f"node-{node_id}", args, cwd=ROOT / "node")
+        except Exception as exc:
+            print(f"[stack] node {node_id} startup guarded: {exc}")
         time.sleep(0.4)
     time.sleep(1.0)
 
@@ -197,10 +218,12 @@ def _boot_mesh() -> None:
 def _shutdown() -> None:
     print("\n[stack] shutting down...")
     for name, proc in reversed(_procs):
-        if proc.poll() is None:
+        if proc is not None and proc.poll() is None:
             proc.terminate()
     deadline = time.time() + 5
     for name, proc in reversed(_procs):
+        if proc is None:
+            continue
         remaining = max(0.0, deadline - time.time())
         try:
             proc.wait(timeout=remaining)
@@ -215,7 +238,7 @@ def _entry_url(use_mock: bool = False) -> str:
 
 
 def _check_primary_boot() -> bool:
-    dead = [name for name, proc in _procs if proc.poll() is not None]
+    dead = [name for name, proc in _procs if proc is not None and proc.poll() is not None]
     if dead:
         print("[stack] primary services exited during startup; switching to mock fallback mode")
         return False
