@@ -223,8 +223,8 @@ if (localStorage.getItem('ct_role') !== 'admin') {
   location.replace('index.html');
 }
 
-const BACKEND_URL = "https://clustertalk-githubaction-projectt-production.up.railway.app";
-const ADMIN_API = BACKEND_URL;
+const API_URL = "https://clustertalk-githubaction-projectt-production.up.railway.app";
+const ADMIN_API = API_URL;
 const COLORS = ['#6366F1','#22C55E','#F59E0B','#EC4899','#0EA5E9','#8B5CF6'];
 
 const $ = (id) => document.getElementById(id);
@@ -362,12 +362,12 @@ function render(d){
 
 async function fetchStats(){
   try{
-    const r = await fetch(`${ADMIN_API}/api/stats`, {cache:'no-store'});
+    const r = await fetch(`${API_URL}/api/stats`, {cache:'no-store'});
     if(!r.ok) throw new Error(r.status);
     render(await r.json());
   }catch(e){
     setApi(false);
-    $('serverList').innerHTML = `<div class="empty">Can't reach the admin API on <code>${ADMIN_API}</code>.<br>Make sure the stack is running (<code>python run_stack.py</code>).</div>`;
+    $('serverList').innerHTML = `<div class="empty">Can't reach the admin API on <code>${API_URL}</code>.<br>Make sure the stack is running (<code>python run_stack.py</code>).</div>`;
   }
 }
 
@@ -379,7 +379,7 @@ function toast(msg){
 }
 async function ctl(url, okMsg){
   try{
-    const r = await fetch(`${ADMIN_API}${url}`, {method:'POST'});
+    const r = await fetch(`${API_URL}${url}`, {method:'POST'});
     const j = await r.json();
     if(j.ok === false) toast('⚠️ ' + (j.reason || 'action failed'));
     else if(okMsg) toast(okMsg);

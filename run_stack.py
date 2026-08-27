@@ -114,7 +114,7 @@ class _NoCacheHandler(http.server.SimpleHTTPRequestHandler):
                         self.send_header(key, value)
                 self.send_header("Access-Control-Allow-Origin", "*")
                 self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-                self.send_header("Access-Control-Allow-Headers", "Content-Type")
+                self.send_header("Access-Control-Allow-Headers", "*")
                 self.end_headers()
                 if payload:
                     self.wfile.write(payload)
@@ -143,7 +143,7 @@ class _NoCacheHandler(http.server.SimpleHTTPRequestHandler):
             self.send_response(204)
             self.send_header("Access-Control-Allow-Origin", "*")
             self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-            self.send_header("Access-Control-Allow-Headers", "Content-Type")
+            self.send_header("Access-Control-Allow-Headers", "*")
             self.end_headers()
             return
         return super().do_OPTIONS()

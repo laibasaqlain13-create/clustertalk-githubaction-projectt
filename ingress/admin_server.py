@@ -129,8 +129,7 @@ def make_handler(lb, spawner: NodeSpawner | None):
         def _cors(self):
             self.send_header("Access-Control-Allow-Origin", "*")
             self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-            self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
-            self.send_header("Access-Control-Allow-Credentials", "true")
+            self.send_header("Access-Control-Allow-Headers", "*")
             self.send_header("Cache-Control", "no-store")
 
         def _send_json(self, obj, status=200):
