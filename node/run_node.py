@@ -36,6 +36,7 @@ won't work since the wire protocol is binary length-prefixed frames.
 import argparse
 import asyncio
 import logging
+import os
 
 from database import default_database_path
 from server import ChatNode
@@ -51,7 +52,7 @@ def _parse_peer(value: str) -> tuple[str, int]:
 async def main() -> None:
     parser = argparse.ArgumentParser(description="Run a ClusterTalk chat node")
     parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--port", type=int, default=8765)
+    parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", 8765)))
     parser.add_argument("--db", default=None)
     parser.add_argument("--auth-db", default=None,
                         help="shared credentials SQLite DB; use the same path for every mesh node")
