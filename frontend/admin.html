@@ -223,7 +223,8 @@ if (localStorage.getItem('ct_role') !== 'admin') {
   location.replace('index.html');
 }
 
-const ADMIN_API = window.location.origin;
+const BACKEND_URL = "https://clustertalk-githubaction-projectt-production.up.railway.app";
+const ADMIN_API = BACKEND_URL;
 const COLORS = ['#6366F1','#22C55E','#F59E0B','#EC4899','#0EA5E9','#8B5CF6'];
 
 const $ = (id) => document.getElementById(id);

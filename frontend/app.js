@@ -136,7 +136,8 @@ function isMockModeEnabled() {
 }
 
 const MOCK_MODE = isMockModeEnabled(); // falls back to mock data when the stack is not available
-const API_BASE_URL = window.location.origin;
+const BACKEND_URL = "https://clustertalk-githubaction-projectt-production.up.railway.app";
+const API_BASE_URL = BACKEND_URL;
 const BRIDGE_URL = `${API_BASE_URL.replace(/^http/, 'ws')}/bridge`;
 
 class ClusterTalkClient {
